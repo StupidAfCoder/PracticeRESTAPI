@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	mw "schoolREST/internal/api/middlewares"
 )
 
 type user struct {
@@ -98,7 +99,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:      port,
-		Handler:   mux,
+		Handler:   mw.Security_headers(mw.Cors(mux)),
 		TLSConfig: tlsConfig,
 	}
 
