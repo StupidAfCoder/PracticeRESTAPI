@@ -25,16 +25,12 @@ func teachersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("This is the GET Method for teachers routes"))
-		fmt.Println("This is the GET Method for teachers routes")
 	case http.MethodPost:
 		w.Write([]byte("This is the PUT Method for teachers routes"))
-		fmt.Println("This is the PUT Method for teachers routes")
 	case http.MethodDelete:
 		w.Write([]byte("This is the DELETE Method for teachers routes"))
-		fmt.Println("This is the DELETE Method for teachers routes")
 	case http.MethodPatch:
 		w.Write([]byte("This is the PATCH Method for teachers routes"))
-		fmt.Println("This is the PATCH Method for teachers routes")
 	}
 
 }
@@ -44,16 +40,12 @@ func studentsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("This is the GET Method for students routes"))
-		fmt.Println("This is the GET Method for students routes")
 	case http.MethodPost:
 		w.Write([]byte("This is the PUT Method for students routes"))
-		fmt.Println("This is the PUT Method for students routes")
 	case http.MethodDelete:
 		w.Write([]byte("This is the DELETE Method for students routes"))
-		fmt.Println("This is the DELETE Method for students routes")
 	case http.MethodPatch:
 		w.Write([]byte("This is the PATCH Method for students routes"))
-		fmt.Println("This is the PATCH Method for students routes")
 	}
 
 }
@@ -63,16 +55,20 @@ func execsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		w.Write([]byte("This is the GET Method for Executives routes"))
-		fmt.Println("This is the GET Method for Executives routes")
 	case http.MethodPost:
+		fmt.Println("Query :", r.URL.Query())
+		fmt.Println("Query :", r.URL.Query().Get("name"))
+
+		err := r.ParseForm()
+		if err != nil {
+			return
+		}
+		fmt.Println("Form POST methods :", r.Form)
 		w.Write([]byte("This is the PUT Method for Executives routes"))
-		fmt.Println("This is the PUT Method for Executives routes")
 	case http.MethodDelete:
 		w.Write([]byte("This is the DELETE Method for Executives routes"))
-		fmt.Println("This is the DELETE Method for Executives routes")
 	case http.MethodPatch:
 		w.Write([]byte("This is the PATCH Method for Executives routes"))
-		fmt.Println("This is the PATCH Method for Executives routes")
 	}
 
 }
@@ -100,9 +96,18 @@ func main() {
 
 	rl := mw.NewRateLimiter(8, time.Minute)
 
+	hppOptions := mw.HPPOptions{
+		CheckQuery:                  true,
+		CheckBody:                   true,
+		CheckBodyOnlyForContentType: "application/x-www-form-urlencoded",
+		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
+	}
+
+	secureMux := mw.Hpp(hppOptions)(rl.Middleware(mw.Compression(mw.ResponseTimeMiddleware(mw.Security_headers(mw.Cors(mux))))))
+
 	server := &http.Server{
 		Addr:      port,
-		Handler:   rl.Middleware(mw.Compression(mw.ResponseTimeMiddleware(mw.Security_headers(mw.Cors(mux))))),
+		Handler:   secureMux,
 		TLSConfig: tlsConfig,
 	}
 

@@ -7,7 +7,13 @@ import (
 func ResponseTimeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		next.ServeHTTP(w, r)
+		//Create a custom ResponseWriter to capture the status code
+		wrappedWriter := &responseWriter{
+			ResponseWriter: w,
+			status:         http.StatusOK,
+		}
+
+		next.ServeHTTP(wrappedWriter, r)
 	})
 }
 
